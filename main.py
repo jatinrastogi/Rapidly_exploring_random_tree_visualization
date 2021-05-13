@@ -13,7 +13,7 @@ BLUE = (50,50,255)
 
 #------CUSTOMIZING VARIABLES------
 dimensions = (1000,1000)
-start = (50,50)
+start = (100,100)
 goal = (510,510)
 obsdim = 30
 obsnum = 50
@@ -34,9 +34,9 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("RRT path planning")
 map1 = pygame.display.set_mode((dimensions[0],dimensions[1]))
 menuSurface = pygame.Surface(menusize)
-
-
-
+map2 = Map(start, goal, obsdim, obsnum)
+graph = Graph(start, goal, dimensions, obsdim, obsnum)
+obs = graph.makeObs()
 ####------BUTTONS--------
 
 resetButton = Button(10,10, 70, 45, 'Reset', RED)
@@ -121,7 +121,8 @@ while carryOn:
         
     
     map1.fill((255,255,255))
-    
+    map2.drawObs(obs, map1)
+    map2.drawMap(obs, map1)
     
     
     if d1 == True and draw_line:

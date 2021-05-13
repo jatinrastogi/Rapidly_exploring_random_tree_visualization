@@ -3,11 +3,11 @@ import random
 import math
 
 class Map:
-    def __init__(self,start,goal,Map,obsdim,obsnum):
+    def __init__(self,start,goal,obsdim,obsnum):
         self.start = start
         self.goal = goal
         
-        self.map = Map
+        
        
        
         self.nodeRad = 0
@@ -24,17 +24,17 @@ class Map:
         self.Red = (255,0,0)
         self.White = (255,255,255)
 
-    def drawMap(self,obstacles):
-        pygame.draw.circle(self.map,self.Green,self.start,self.nodeRad+5,0)
-        pygame.draw.circle(self.map,self.Green,self.goal,self.nodeRad+20,1)
-        self.drawObs(obstacles)
+    def drawMap(self,obstacles,surface):
+        pygame.draw.circle(surface,self.Green,self.start,self.nodeRad+5,0)
+        pygame.draw.circle(surface,self.Green,self.goal,self.nodeRad+20,1)
+        self.drawObs(obstacles,surface)
     def drawPath(self):
         pass
-    def drawObs(self,obstacles):
+    def drawObs(self,obstacles,surface):
         obstaclesList = obstacles.copy()
         while(len(obstaclesList)>0):
             obstacle = obstaclesList.pop(0)
-            pygame.draw.rect(self.map,self.grey,obstacle)
+            pygame.draw.rect(surface,self.grey,obstacle)
 
 
 class Graph:

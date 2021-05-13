@@ -10,7 +10,7 @@ class Map:
         
        
        
-        self.nodeRad = 0
+        self.nodeRad = 2
         self.nodeThickness = 0
         self.edgeThickness = 1
         
@@ -24,10 +24,10 @@ class Map:
         self.Red = (255,0,0)
         self.White = (255,255,255)
 
-    def drawMap(self,obstacles,surface):
-        pygame.draw.circle(surface,self.Green,self.start,self.nodeRad+5,0)
+    def drawMap(self,surface):
+        pygame.draw.circle(surface,self.Green,self.start,self.nodeRad+10,0)
         pygame.draw.circle(surface,self.Green,self.goal,self.nodeRad+20,1)
-        self.drawObs(obstacles,surface)
+        #self.drawObs(obstacles,surface)
     def drawPath(self):
         pass
     def drawObs(self,obstacles,surface):
@@ -38,10 +38,13 @@ class Map:
 
 
 class Graph:
-    def __init__(self,start,goal,MapDimensions,obsdim,obsnum):
+    def __init__(self,start,goal,MapDimensions,obsdim,lineobs,circleobs,rectangleobs):
         (x,y) = start
         self.start = start
         self.goal = goal
+        self.lineobs = lineobs
+        self.circleobs = circleobs
+        self.rectangleobs = rectangleobs
         self.goalFlag = False
         self.maph,self.mapw = MapDimensions
         self.x = []
@@ -53,7 +56,7 @@ class Graph:
 
         self.obstacles = []
         self.obsDim = obsdim
-        self.obsNum = obsnum
+        self.obsNum = len(self.lineobs) + len(self.circleobs) + len(self.rectangleobs)
 
         self.goalstate = None
         self.path = []
@@ -83,28 +86,114 @@ class Graph:
         return obs
 
 
-    def add_node(self):
-        pass
-    def remove_node(self):
-        pass
-    def add_edge(self):
-        pass
-    def remove_edge(self):
-        pass
+    def add_node(self,n,x,y):
+        self.x.insert(n, x)
+        self.y.append(y)
+    def remove_node(self,n):
+        self.x.pop(n)
+        self.y.pop(n)
+    def add_edge(self,parent,child):
+        self.parent.insert(child, parent)
+    def remove_edge(self,n):
+        self.parent.pop(n)
     
     def number_of_nodes(self):
-        pass
+        return len(self.x)
 
-    def distance(self):
-        pass
+    def number_of_obs(self):
+        return len(self.lineobs) + len(self.circleobs) + len(self.rectangleobs)
+    def distance(self,n1,n2):
+        (x1,y1) = (self.x[n1],self.y[n1])
+        (x2,y2) = (self.x[n2],self.y[n2])
+        px = (float(x1)-float(x2))**2
+        py = (float(y1)-float(y2))**2
+        return (px+py)**(0.5)
+    def sample_envir(self):
+        x = int(random.uniform(0, self.mapw))
+        y = int(random.uniform(0, self.maph))
+        return x,y
+    
     def nearest(self):
         pass
     def isFree(self):
-        pass
-    def crossObstacle(self):
-        pass
-    def connect(self):
-        pass
+        n = self.number_of_nodes() - 1
+        (x,y) = (self.x[n],self.y[n])
+        #------for rectangle-------
+        rectobs = self.rectangleobs.copy()
+        while len(rectobs)>0:
+            rectang = rectobs.pop(0)
+            if rectang.collidepoint(x,y):
+                self.remove_node(n)
+                return False
+        #-----for line---------
+        lineobs = self.lineobs.copy()
+        while len(lineobs)>0:
+            ((x1,y1),(x2,y2)) = lineobs.pop(0)
+            m = (y2-y1)/(x2-x1)
+            if float(y) == float(m*x+y1 - m*x1):
+                self.remove_node(n)
+                return False
+        #-------for circle--------
+        circleobs = self.circleobs.copy()
+        while len(circleobs)>0:
+            center = circleobs.pop(0)
+            px = (center[0]- x)**2
+            py = (center[1]-y)**2
+            d = float((px+py) ** (0.5))
+            if d<=10.0:
+                self.remove_node(n)
+                return False
+        return True
+    def crossObstacle(self,x1,y1,x2,y2):
+        
+        #----FOR RECTANGLE---------------
+        rectobs = self.rectangleobs.copy()
+        while len(rectobs)>0:
+            rectang = rectobs.pop(0)
+            for i in range(101):
+                u = i/100
+                x = x1*u + x2*(1-u)
+                y = y1*u + y2*(1-u)
+                if rectang.collidepoint(x, y):
+                    return True
+        #---------FOR LINE----------------
+        lineobs = self.lineobs.copy()
+        while len(lineobs)>0:
+            ((x3,y3),(x4,y4)) = lineobs.pop(0)
+            div = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            if div == 0:
+                # Parallel
+                continue
+
+            t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / div
+            u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / div
+
+            # Check if there is an intersection point
+            if 0.0 < t and u > 0.0 and u < 1:
+                return True
+        #-------for circle----------------
+        circleobs = self.circleobs.copy()
+        while len(circleobs)>0:
+            c = circleobs.pop(0)
+            dx = (x2-x1) ** 2
+            dy = (y2-y1) ** 2
+            dr = float((dx+dy)**(0.5))
+            D  = x1*y2 - x2*y1
+            discriminant = 100*pow(dr,2) - pow(D,2)
+            if discriminant>=0:
+                return True
+        
+        return False
+
+    def connect(self,n1,n2):
+        (x1,y1) = (self.x[n1],self.y[n1])
+        (x2,y2) = (self.x[n2],self.y[n2])
+        if self.crossObstacle(x1, y1, x2, y2):
+            self.remove_node(n2)
+            return False
+        else:
+            self.add_edge(n1, n2)
+            return True
     def step(self):
         pass
     def path_to_goal(self):

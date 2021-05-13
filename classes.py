@@ -3,20 +3,13 @@ import random
 import math
 
 class Map:
-    def __init__(self,start,goal,MapDimensions,obsdim,obsnum,menusize):
+    def __init__(self,start,goal,Map,obsdim,obsnum):
         self.start = start
         self.goal = goal
-        self.MapDimensions = MapDimensions
-        self.Maph,self.Mapw = self.MapDimensions
-
-        self.MapWindowName = 'RRT Path Planning'
-        pygame.display.set_caption(self.MapWindowName)
-        self.map = pygame.display.set_mode((self.Maph,self.Mapw))
-        self.map.fill((255,255,255))
-        menuSurface = pygame.Surface(menusize)
-        menuSurface.fill((0,0,0))
-        menuSurface.set_alpha(126)
-        self.map.blit(menuSurface, (0, 0))
+        
+        self.map = Map
+       
+       
         self.nodeRad = 0
         self.nodeThickness = 0
         self.edgeThickness = 1
@@ -124,3 +117,38 @@ class Graph:
         pass
     def cost(self):
         pass
+
+class Button():
+    def __init__(self, x, y, width, height, text, color):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.color = color
+    
+    @property
+    def text(self):
+        return self._text
+    
+    @text.setter
+    def text(self, t):
+        # Render new label
+        self._text = t
+        self.label = pygame.font.SysFont("monospace", 15).render(t, 1, (0, 0, 0))
+
+    def values(self):
+        return (self.x, self.y, self.width, self.height)
+
+    def draw(self, surface):
+        # Draw button
+        pygame.draw.rect(surface, self.color, self.values())
+        # Draw label
+        surface.blit(self.label, (self.x + (self.width/2 - self.label.get_width()/2), self.y+(self.height/2 - self.label.get_height()/2)))
+    
+    def clicked(self, pos):
+        if pos[0] > self.x and pos[0] < self.x + self.width:
+            if pos[1] > self.y and pos[1] < self.y + self.height:
+                return True
+
+        return False

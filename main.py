@@ -59,7 +59,7 @@ goalButton = Button(10, startButton.y+10+startButton.height, 70, 45, 'Goal', BLU
 def play1():
 
 
-
+    path = []
     iteration = int(input("Write Here The Number Of Nodes : "))
     while (iteration>0):
         if iteration%10==0:
@@ -110,7 +110,7 @@ while carryOn:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             carryOn = False
-        elif event.type == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             if event.button == 1:
                 if resetButton.clicked(pos):
@@ -123,7 +123,7 @@ while carryOn:
                     graph.x = [graph.start[0]]
                     graph.y = [graph.start[1]]
                     graph.parent = [0]
-                    print(graph.parent)
+                    #print(graph.parent)
                     start1 = False
                     goal1 = False
                     play = False
@@ -146,10 +146,17 @@ while carryOn:
                         
                         
                     else:
+                        
                         playButton.color = YELLOW
                         playButton.text = 'Stop'
                         #carryOn = False
-                        path = play1()    
+                        result = False
+                        while not result:
+                            try:
+                                path = play1()
+                                result = True
+                            except:
+                                result = False    
                     play = not play
                     draw_line = False
                     draw_circle = False
@@ -201,7 +208,7 @@ while carryOn:
                     if start1:
                         map2.start = pos
                         graph.setstart(pos)
-                        print(graph.x)
+                        #print(graph.x)
                         graph.start = pos
                         start1 = False
                     if goal1:

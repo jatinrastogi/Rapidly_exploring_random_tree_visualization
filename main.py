@@ -82,10 +82,19 @@ while carryOn:
                     graph.lineobs = []
                     graph.circleobs = []
                     graph.rectangleobs = []
+                    edges = []
+                    nodes = []
+                    graph.x = [graph.start[0]]
+                    graph.y = [graph.start[1]]
+                    print(graph.number_of_nodes())
                     start1 = False
                     goal1 = False
+                    play = False
                     map2.start = (300,300)
                     map2.goal = (510,510)
+                    graph.setstart(map2.start)
+                    playButton.color = GREEN
+                    playButton.text = 'Play'
                 elif playButton.clicked(pos):
                     
                     if play:
@@ -123,6 +132,7 @@ while carryOn:
                     goal1 = False
 
                 elif startButton.clicked(pos):
+                    
                     start1 = True
                     play = False
                     draw_line = False
@@ -152,9 +162,12 @@ while carryOn:
                         
                     if start1:
                         map2.start = pos
+                        graph.setstart(pos)
+                        print(graph.x)
                         start1 = False
                     if goal1:
                         map2.goal = pos
+                        graph.goal = pos
                         goal1 = False
                     if draw_circle:
                         
@@ -162,7 +175,7 @@ while carryOn:
                         draw_circle = False
                         
                     if draw_rectangle:
-                        rect = pygame.Rect(pos,(30,30))
+                        rect = pygame.Rect(pos,(30,30)) 
                         graph.rectangleobs.append(rect)                                       
                         draw_rectangle = False
             elif event.button == 3:
@@ -195,6 +208,7 @@ while carryOn:
     if play:
         x,y = graph.sample_envir()
         n = graph.number_of_nodes()
+        print(n)
         graph.add_node(n, x, y)
         x1,y1 = graph.x[n],graph.y[n]
         x2,y2 = graph.x[n-1],graph.y[n-1]

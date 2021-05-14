@@ -30,13 +30,14 @@ class Map:
         #self.drawObs(obstacles,surface)
     def drawPath(self):
         pass
+    '''
     def drawObs(self,obstacles,surface):
         obstaclesList = obstacles.copy()
         while(len(obstaclesList)>0):
             obstacle = obstaclesList.pop(0)
             pygame.draw.rect(surface,self.grey,obstacle)
 
-
+    '''
 class Graph:
     def __init__(self,start,goal,MapDimensions,obsdim,lineobs,circleobs,rectangleobs):
         (x,y) = start
@@ -61,11 +62,8 @@ class Graph:
         self.goalstate = None
         self.path = []
 
-    def makeRandomRect(self):
-        uppercornerx = int(random.uniform(0,self.mapw-self.obsDim))
-        uppercornery = int(random.uniform(0,self.maph-self.obsDim))
-        return (uppercornerx,uppercornery)
-
+    
+    '''
     def makeObs(self):
         obs = []
 
@@ -84,7 +82,13 @@ class Graph:
 
         self.obstacles = obs.copy()
         return obs
+    '''
 
+    def setstart(self,start):
+        (x,y) = start
+        self.start = (x,y)
+        self.x[0] = x
+        self.x[0] = y
 
     def add_node(self,n,x,y):
         self.x.insert(n, x)
@@ -109,12 +113,18 @@ class Graph:
         py = (float(y1)-float(y2))**2
         return (px+py)**(0.5)
     def sample_envir(self):
-        x = int(random.uniform(0, self.mapw))
+        x = int(random.uniform(100, self.mapw))
         y = int(random.uniform(0, self.maph))
         return x,y
     
-    def nearest(self):
-        pass
+    def nearest(self,n):
+        dmin = self.distance(0, n)
+        nnear = 0
+        for i in range(n):
+            if self.distance(i, n) < dmin:
+                dmin = self.distance(i, n)
+                nnear = i
+        return nnear
     def isFree(self):
         n = self.number_of_nodes() - 1
         (x,y) = (self.x[n],self.y[n])
@@ -174,12 +184,13 @@ class Graph:
         #-------for circle----------------
         circleobs = self.circleobs.copy()
         while len(circleobs)>0:
-            c = circleobs.pop(0)
-            dx = (x2-x1) ** 2
-            dy = (y2-y1) ** 2
-            dr = float((dx+dy)**(0.5))
-            D  = x1*y2 - x2*y1
-            discriminant = 100*pow(dr,2) - pow(D,2)
+            center = circleobs.pop(0)
+            (p1x, p1y), (p2x, p2y), (cx, cy) = (x1,y1), (x2,y2), center
+            (x1, y1), (x2, y2) = (p1x - cx, p1y - cy), (p2x - cx, p2y - cy)
+            dx, dy = (x2 - x1), (y2 - y1)
+            dr = (dx ** 2 + dy ** 2)**.5
+            big_d = x1 * y2 - x2 * y1
+            discriminant = 10 ** 2 * dr ** 2 - big_d ** 2
             if discriminant>=0:
                 return True
         
@@ -194,8 +205,23 @@ class Graph:
         else:
             self.add_edge(n1, n2)
             return True
-    def step(self):
-        pass
+    def step(self,nnear,nrand,dmax=35):
+        d = self.distance(nnear, nrand)
+        if d>dmax:
+            u = dmax/d
+            (xnear,ynear) = (self.x[nnear],self.y[nnear])
+            (xrand,yrand) = (self.x[nrand],self.y[nrand])
+            px,py = (xrand-xnear,yrand-ynear)
+            theta = math.atan2(py, px)
+            (x,y) = (int(xnear+ dmax*math.cos(theta)),
+                    int(ynear+dmax*math.sin(theta)))
+            self.remove_node(nrand)
+            if abs(x-self.goal[0])<dmax and abs(y-self.goal[1])<dmax:
+                self.add_node(nrand, self.goal[0], self.goal[1])
+                self.goalstate = nrand
+                self.goalFlag = True
+            else:
+                self.add_node(nrand, x, y)
     def path_to_goal(self):
         pass
     def getPathCoords(self):

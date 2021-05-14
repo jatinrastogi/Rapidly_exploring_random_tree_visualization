@@ -35,6 +35,7 @@ start1 = False
 goal1 = False
 nodes = []
 edges = []
+path = []
 #----- INITIALIZING EVERYTHING------
 pygame.init()
 clock = pygame.time.Clock()
@@ -55,6 +56,42 @@ startButton = Button(10, rectButton.y+100+rectButton.height, 70, 45, 'Start', BL
 goalButton = Button(10, startButton.y+10+startButton.height, 70, 45, 'Goal', BLUE)
 
 
+def play1():
+
+
+
+    iteration = int(input("Write Here The Number Of Nodes : "))
+    while (iteration>0):
+        if iteration%10==0:
+            X,Y,Parent = graph.bias(graph.goal)
+            pygame.draw.circle(map1, GREY, (X[-1],Y[-1]), map2.nodeRad+2,0)
+            pygame.draw.line(map1, BLUE, (X[-1],Y[-1]), (X[Parent[-1]],Y[Parent[-1]]),map2.edgeThickness)
+            nodes.append((X[-1],Y[-1]))
+            edges.append(((X[-1],Y[-1]), (X[Parent[-1]],Y[Parent[-1]])))
+        else:
+            X,Y,Parent = graph.expand()
+            pygame.draw.circle(map1, GREY, (X[-1],Y[-1]), map2.nodeRad+2,0)
+            pygame.draw.line(map1, BLUE, (X[-1],Y[-1]), (X[Parent[-1]],Y[Parent[-1]]),map2.edgeThickness)
+            nodes.append((X[-1],Y[-1]))
+            edges.append(((X[-1],Y[-1]), (X[Parent[-1]],Y[Parent[-1]])))
+        if iteration%5==0:
+            pygame.display.update()
+        iteration -= 1
+    if graph.path_to_goal():
+        path = graph.getPathCoords()
+        for node in path:
+            pygame.draw.circle(map1, RED, node, map2.nodeRad+3)
+            print((node[0],node[1]))
+        
+    else:
+        print("*********Path Was Not Found***********")
+    
+    carryOn = True
+    pygame.display.update()
+    return path
+    #pygame.display.flip()
+    #pygame.event.wait(0)  
+#
 def drawmenu():
     menuSurface.set_alpha(126)
     menuSurface.fill((0,0,0))
@@ -68,13 +105,11 @@ def drawmenu():
     goalButton.draw(map1)
 def drawgraph():
     pass
-        
 #-------MAIN EVENT LOOP----------#
 while carryOn:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             carryOn = False
-        
         elif event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             if event.button == 1:
@@ -83,10 +118,12 @@ while carryOn:
                     graph.circleobs = []
                     graph.rectangleobs = []
                     edges = []
+                    path = []
                     nodes = []
                     graph.x = [graph.start[0]]
                     graph.y = [graph.start[1]]
-                    print(graph.number_of_nodes())
+                    graph.parent = [0]
+                    print(graph.parent)
                     start1 = False
                     goal1 = False
                     play = False
@@ -96,14 +133,23 @@ while carryOn:
                     playButton.color = GREEN
                     playButton.text = 'Play'
                 elif playButton.clicked(pos):
-                    
                     if play:
                         playButton.color = GREEN
                         playButton.text = 'Play'
+                        edges = []
+                        path = []
+                        nodes = []
+                        graph.x = [graph.start[0]]
+                        graph.y = [graph.start[1]]
+                        graph.parent = [0]
+                        #print(graph.parent)
+                        
+                        
                     else:
                         playButton.color = YELLOW
                         playButton.text = 'Stop'
-                        
+                        #carryOn = False
+                        path = play1()    
                     play = not play
                     draw_line = False
                     draw_circle = False
@@ -116,30 +162,25 @@ while carryOn:
                     draw_rectangle = False
                     start1 = False
                     goal1 = False
-
                 elif circleButton.clicked(pos):
                     draw_line = False
                     draw_circle = True
                     draw_rectangle = False
                     start1 = False
                     goal1 = False
-
                 elif rectButton.clicked(pos):
                     draw_line = False
                     draw_circle = False
                     draw_rectangle = True
                     start1 = False
                     goal1 = False
-
                 elif startButton.clicked(pos):
-                    
                     start1 = True
                     play = False
                     draw_line = False
                     draw_circle = False
                     draw_rectangle = False                        
                     goal1 = False
-                    
                 elif goalButton.clicked(pos):
                     start1 = False
                     play = False
@@ -147,11 +188,9 @@ while carryOn:
                     draw_circle = False
                     draw_rectangle = False                        
                     goal1 = True
-
                 elif not play:
                     if draw_line:
                         if d1:
-                            
                             d1 = False
                             graph.lineobs.append((starting_pos,pos))
                             print(graph.number_of_obs())     
@@ -159,21 +198,19 @@ while carryOn:
                             d1 = True
                             starting_pos = pos
                             #pygame.draw.line(map1,BLACK , starting_pos, pygame.mouse.get_pos(), 1)
-                        
                     if start1:
                         map2.start = pos
                         graph.setstart(pos)
                         print(graph.x)
+                        graph.start = pos
                         start1 = False
                     if goal1:
                         map2.goal = pos
                         graph.goal = pos
                         goal1 = False
                     if draw_circle:
-                        
                         graph.circleobs.append(pos)
                         draw_circle = False
-                        
                     if draw_rectangle:
                         rect = pygame.Rect(pos,(30,30)) 
                         graph.rectangleobs.append(rect)                                       
@@ -182,13 +219,9 @@ while carryOn:
                 d1 = False
                 d2 = False
                 d3 = False                
-        
-    
     #map2.drawObs(obs, map1)
     map1.fill((255,255,255))
     map2.drawMap(map1)
-    
-    
     if d1 == True and draw_line:
         pygame.draw.line(map1,GREY , starting_pos, pygame.mouse.get_pos(), 1)
     if draw_circle:
@@ -201,35 +234,22 @@ while carryOn:
     for c in graph.circleobs:
         pygame.draw.circle(map1, GREY, c, 10)
     for r in graph.rectangleobs:
-        
         pygame.draw.rect(map1,GREY,r)
-    
     drawmenu()
-    if play:
-        x,y = graph.sample_envir()
-        n = graph.number_of_nodes()
-        print(n)
-        graph.add_node(n, x, y)
-        x1,y1 = graph.x[n],graph.y[n]
-        x2,y2 = graph.x[n-1],graph.y[n-1]
-        if graph.isFree():
-            nodes.append((graph.x[n],graph.y[n]))
-            if not graph.crossObstacle(x1, y1, x2, y2):
-                edges.append(((x1,y1),(x2,y2)))
     #pygame.draw.circle(map1, RED, pygame.mouse.get_pos(), 2)
-    
     for n in nodes:
-        pygame.draw.circle(map1, RED, n, map2.nodeRad,map2.nodeThickness)
+        pygame.draw.circle(map1, GREY, n, map2.nodeRad+2,0)
     for e in edges:
-        pygame.draw.line(map1, BLUE, e[0], e[1])
-    clock.tick(60)  
-    pygame.display.flip()
-                
+        pygame.draw.line(map1, BLUE, e[0], e[1],map2.edgeThickness)
+    for node in path:
+        pygame.draw.circle(map1, RED, node, map2.nodeRad+3)
+    #clock.tick(60)  
+    #pygame.display.flip()
     pygame.display.update()
-   
-    
-#pygame.display.update()
-#pygame.event.clear()
-#pygame.event.wait(1000000000)
+
+
+
+
+      
 
 pygame.quit()

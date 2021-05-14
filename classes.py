@@ -88,7 +88,7 @@ class Graph:
         (x,y) = start
         self.start = (x,y)
         self.x[0] = x
-        self.x[0] = y
+        self.y[0] = y
 
     def add_node(self,n,x,y):
         self.x.insert(n, x)
@@ -223,16 +223,43 @@ class Graph:
             else:
                 self.add_node(nrand, x, y)
     def path_to_goal(self):
-        pass
+        if self.goalFlag:
+            self.path = []
+            self.path.append(self.goalstate)
+            newpos = self.parent[self.goalstate]
+            while newpos !=0:
+                self.path.append(newpos)
+                newpos = self.parent[newpos]
+            self.path.append(0)
+        return self.goalFlag
     def getPathCoords(self):
-        pass
-    def bias(self):
-        pass
+        pathcoords = []
+        for node in self.path:
+            (x,y) = (self.x[node],self.y[node])
+            pathcoords.append((x,y))
+        return pathcoords
+
+    def bias(self,ngoal):
+        n = self.number_of_nodes()
+        self.add_node(n, ngoal[0], ngoal[1])
+        nnear = self.nearest(n)
+        self.step(nnear, n)
+        self.connect(nnear, n)
+        return self.x,self.y,self.parent
+
     def expand(self):
-        pass
+        n = self.number_of_nodes()
+        x,y = self.sample_envir()
+        self.add_node(n, x, y)
+        if self.isFree():
+            xnearest = self.nearest(n)
+            self.step(xnearest, n)
+            self.connect(xnearest, n)
+        return self.x,self.y,self.parent
+
     def cost(self):
         pass
-
+    
 class Button():
     def __init__(self, x, y, width, height, text, color):
         self.x = x

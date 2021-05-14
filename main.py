@@ -130,6 +130,7 @@ while carryOn:
                     map2.start = (300,300)
                     map2.goal = (510,510)
                     graph.setstart(map2.start)
+                    graph.goal = (510,510)
                     playButton.color = GREEN
                     playButton.text = 'Play'
                 elif playButton.clicked(pos):
@@ -200,7 +201,7 @@ while carryOn:
                         if d1:
                             d1 = False
                             graph.lineobs.append((starting_pos,pos))
-                            print(graph.number_of_obs())     
+                            #print(graph.number_of_obs())     
                         else:
                             d1 = True
                             starting_pos = pos
